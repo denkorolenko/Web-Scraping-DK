@@ -83,7 +83,10 @@ def parse_special_symbols_and_numbers(text):
 
 if __name__ == '__main__':
     f = open("data.txt", "r")
+
     text = f.read()
+
+    f.close()
 
     parse_dates(text)
     parse_dates_with_words(text)

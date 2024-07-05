@@ -2,6 +2,7 @@ import requests
 import re
 import time
 import random
+import json
 
 
 def parse_lejobadequat_site(numOfPages=1):
@@ -58,7 +59,7 @@ def parse_lejobadequat_site(numOfPages=1):
 
         print('Status code:', response.status_code)
     
-        if response.status_code < 200 or response.status_code >= 300:
+        if not response.ok:
             # we could add here a retry logic instead
             print('Statuc code is not valid, stoping execution')
             return
@@ -77,11 +78,8 @@ def parse_lejobadequat_site(numOfPages=1):
         time.sleep(secTimeout)
 
     # save jobs to file
-    with open('result.txt', 'w') as f:
-        f.write('{}'.format(jobTitles))
-
-        # output as json
-        # f.write(json.dumps(jobTitles, indent=4))
+    with open('result.json', 'w') as f:
+        f.write(json.dumps(jobTitles, indent=4))
 
 
 if __name__ == '__main__':

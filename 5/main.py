@@ -5,6 +5,7 @@ import time
 import random
 import os
 import json
+import sqlite3
 
 
 def get_content(method='POST', url=None, headers=None, json_data=None, save_as_json=True):
@@ -66,6 +67,31 @@ def write_json(jobTitles, urls):
         json.dump(data, f, indent=4)
 
 
+def write_sqlite(jobTitles, urls):
+    filename = 'jobs.db'
+
+    conn = sqlite3.connect(filename)
+    cursor = conn.cursor()
+
+    sql = """
+        create table if not exists jobs (
+            id integer primary key,
+            title text,
+            url text
+        )
+    """
+    cursor.execute(sql)
+
+    for i, jobTitle in enumerate(jobTitles):
+        cursor.execute("""
+            insert into jobs (id, title, url)
+            values (?, ?, ?)
+        """, (i + 1, jobTitle, urls[i]))
+
+    conn.commit()
+    conn.close()
+
+
 def parse_lejobadequat():
     headers = {
         'accept': '*/*',
@@ -123,7 +149,8 @@ def parse_lejobadequat():
         print('Number of titles does not equal to number of urls')
         return
 
-    write_json(jobTitles, urls) 
+    write_json(jobTitles, urls)
+    write_sqlite(jobTitles, urls)
 
 
 if __name__ == '__main__':

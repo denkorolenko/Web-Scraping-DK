@@ -50,15 +50,15 @@ def get_content(method='POST', url=None, headers=None, json_data=None, save_as_j
                 return response.text
 
 
-def write_json(jobTitles, urls):
+def write_json(jobTitleUrl):
     data = []
     filename = 'jobs.json'
 
-    for i, jobTitle in enumerate(jobTitles):
+    for i, (jobTitle, url) in enumerate(jobTitleUrl):
         data.append({
             'id': i + 1,
             'title': jobTitle,
-            'url': urls[i]
+            'url': url
         })
 
     with open(filename, 'w', encoding='utf-8') as f:
@@ -67,7 +67,7 @@ def write_json(jobTitles, urls):
     print('json created')
 
 
-def write_sqlite(jobTitles, urls):
+def write_sqlite(jobTitleUrl):
     filename = 'jobs.db'
 
     conn = sqlite3.connect(filename)
@@ -82,11 +82,11 @@ def write_sqlite(jobTitles, urls):
     """
     cursor.execute(sql)
 
-    for i, jobTitle in enumerate(jobTitles):
+    for i, (jobTitle, url) in enumerate(jobTitleUrl):
         cursor.execute("""
             insert or replace into jobs (id, title, url)
             values (?, ?, ?)
-        """, (i + 1, jobTitle, urls[i]))
+        """, (i + 1, jobTitle, url))
 
     conn.commit()
     conn.close()
@@ -148,11 +148,13 @@ def parse_lejobadequat():
     print('Job URLs:', urls)
 
     if len(jobTitles) != len(urls):
-        print('Number of titles does not equal to number of urls')
+        print('Error: Number of titles does not equal to number of urls')
         return
 
-    write_json(jobTitles, urls)
-    write_sqlite(jobTitles, urls)
+    jobTitleUrl = zip(jobTitles, urls)
+
+    write_json(jobTitleUrl)
+    write_sqlite(jobTitleUrl)
 
 
 if __name__ == '__main__':

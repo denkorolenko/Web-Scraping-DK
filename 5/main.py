@@ -39,17 +39,15 @@ def get_content(method='POST', url=None, headers=None, json_data=None, save_as_j
             print('Cannot get content, code: ', response.status_code)
             return
 
-        content = None
-        if save_as_json:
-            content = json.dumps(response.json(), indent=4)
-        else:
-            content = response.text
+        print('get from server')
 
         with open(path, 'w') as f:
-            f.write(content)
-
-        print('get from server')
-        return content
+            if save_as_json:
+                f.write(json.dumps(response.json(), indent=4))
+                return response.json()
+            else:
+                f.write(response.text)
+                return response.text
 
 
 def write_json(jobTitles, urls):
@@ -65,6 +63,8 @@ def write_json(jobTitles, urls):
 
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
+
+    print('json created')
 
 
 def write_sqlite(jobTitles, urls):
@@ -84,12 +84,14 @@ def write_sqlite(jobTitles, urls):
 
     for i, jobTitle in enumerate(jobTitles):
         cursor.execute("""
-            insert into jobs (id, title, url)
+            insert or replace into jobs (id, title, url)
             values (?, ?, ?)
         """, (i + 1, jobTitle, urls[i]))
 
     conn.commit()
     conn.close()
+
+    print('sqlite updated')
 
 
 def parse_lejobadequat():

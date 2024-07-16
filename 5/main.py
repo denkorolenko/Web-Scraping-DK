@@ -4,11 +4,11 @@ import sqlite3
 from get_content_cached import get_content
 
 
-def write_json(jobTitleUrl):
+def write_json(urlJobTitle):
     data = []
     filename = 'jobs.json'
 
-    for i, (jobTitle, url) in enumerate(jobTitleUrl):
+    for i, (url, jobTitle) in enumerate(urlJobTitle):
         data.append({
             'id': i + 1,
             'title': jobTitle,
@@ -21,7 +21,7 @@ def write_json(jobTitleUrl):
     print('json created')
 
 
-def write_sqlite(jobTitleUrl):
+def write_sqlite(urlJobTitle):
     filename = 'jobs.db'
 
     conn = sqlite3.connect(filename)
@@ -36,11 +36,11 @@ def write_sqlite(jobTitleUrl):
     """
     cursor.execute(sql)
 
-    for i, (jobTitle, url) in enumerate(jobTitleUrl):
+    for url, jobTitle in urlJobTitle:
         cursor.execute("""
-            insert or replace into jobs (id, title, url)
-            values (?, ?, ?)
-        """, (i + 1, jobTitle, url))
+            insert into jobs (title, url)
+            values (?, ?)
+        """, (jobTitle, url))
 
     conn.commit()
     conn.close()
@@ -93,22 +93,13 @@ def parse_lejobadequat():
     content = get_content(method='POST', url='https://www.lejobadequat.com/emplois', headers=headers, json_data=json_data)
     content = content['template']
 
-    pattern = r'<h3 class=\"jobCard_title\">(.+)</h3>'
-    jobTitles = re.findall(pattern, content)
-    print('Job Titles:', jobTitles)
+    pattern = r'<a href=\"([^\"]+)\".+class=\"jobCard_link\"[^.]+<h3 class=\"jobCard_title\">(.+)</h3>'
+    urlJobTitle = re.findall(pattern, content)
 
-    pattern = r'<a href=\"([^\"]+)\".+class=\"jobCard_link\"'
-    urls = re.findall(pattern, content)
-    print('Job URLs:', urls)
+    print('urlJobTitle', urlJobTitle)
 
-    if len(jobTitles) != len(urls):
-        print('Error: Number of titles does not equal to number of urls')
-        return
-
-    jobTitleUrl = zip(jobTitles, urls)
-
-    write_json(jobTitleUrl)
-    write_sqlite(jobTitleUrl)
+    write_json(urlJobTitle)
+    write_sqlite(urlJobTitle)
 
 
 if __name__ == '__main__':
